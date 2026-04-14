@@ -31,7 +31,7 @@ The safe version includes:
 - Production-grade safety without performance cost
 
 ## Tools
-- Claude/ChatGPT as Safety Inspector and Code Generator
+- Claude, Gemini, and ChatGPT as Safety Inspector and Code Generator
 - Prompts included specific bug classes and three distinct requirements
 
 ## Reflection
