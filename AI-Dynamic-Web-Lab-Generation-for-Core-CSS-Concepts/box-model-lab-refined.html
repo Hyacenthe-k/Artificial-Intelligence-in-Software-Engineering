@@ -1,173 +1,1110 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CSS Box Model &amp; Display Lab (Refined: Side-Specific)</title>
-<style>
-  * { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; box-sizing: border-box; }
-  body { margin: 0; background: #f4f5f7; color: #222; }
-  h1 { font-size: 1.4rem; margin: 0; padding: 16px 24px; background: #1f2937; color: #fff; }
-  .layout { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; align-items: flex-start; }
-  .panel { background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
-  .controls { flex: 0 0 340px; max-height: calc(100vh - 110px); overflow-y: auto; }
-  .stage-wrap { flex: 1 1 420px; min-width: 300px; position: sticky; top: 20px; }
-  fieldset { border: 1px solid #d1d5db; border-radius: 8px; margin: 0 0 14px; padding: 10px 12px; }
-  legend { font-weight: 700; padding: 0 6px; font-size: .9rem; }
-  .row { margin-bottom: 8px; }
-  .row label { display: flex; justify-content: space-between; font-size: .82rem; margin-bottom: 2px; }
-  .row .val { font-weight: 700; color: #2563eb; }
-  input[type=range] { width: 100%; }
-  select { width: 100%; padding: 6px; }
-  .link-btn { font-size: .75rem; margin-top: 4px; cursor: pointer; padding: 3px 8px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Flexbox & Grid Playground</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  #stage { position: relative; isolation: isolate; background: #fff; border: 2px dashed #9ca3af;
-           padding: 12px; min-height: 320px; line-height: 1.2; overflow: auto; }
-  .box { position: relative; text-align: center; font-weight: 700; }
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f6ff',
+                            100: '#e0edff',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
-  /* Box 1: content-box sizing so "width" = content width. CSS variables drive every side. */
-  #box1 {
-    --mt: 20px; --mr: 20px; --mb: 20px; --ml: 20px;
-    --bt: 6px;  --br: 6px;  --bb: 6px;  --bl: 6px;
-    box-sizing: content-box;
-    width: 120px; height: 50px; line-height: 50px;
-    margin: var(--mt) var(--mr) var(--mb) var(--ml);
-    padding: 20px;
-    border-style: solid; border-color: #1e3a8a;
-    border-width: var(--bt) var(--br) var(--bb) var(--bl);
-    border-radius: 0;
-    background:
-      linear-gradient(#a7f3d0, #a7f3d0) content-box,
-      linear-gradient(#fde68a, #fde68a) padding-box;
-    display: block;
-  }
-  /* Margin area: extends out from the padding edge by (border + margin) on each side */
-  #box1::before {
-    content: ""; position: absolute; z-index: -1; background: #fdba74;
-    top: calc(-1 * (var(--mt) + var(--bt)));
-    right: calc(-1 * (var(--mr) + var(--br)));
-    bottom: calc(-1 * (var(--mb) + var(--bb)));
-    left: calc(-1 * (var(--ml) + var(--bl)));
-  }
-  #box2 { background: #c7d2fe; border: 2px solid #4338ca; padding: 10px; margin: 0; }
+    <style>
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
 
-  .legend-row { display: flex; gap: 12px; flex-wrap: wrap; font-size: .8rem; margin-top: 12px; }
-  .legend-row span::before { content: ""; display: inline-block; width: 12px; height: 12px; margin-right: 5px; vertical-align: -1px; border: 1px solid #555; }
-  .l-m::before { background: #fdba74; } .l-b::before { background: #1e3a8a; }
-  .l-p::before { background: #fde68a; } .l-c::before { background: #a7f3d0; }
-  pre { background: #111827; color: #d1fae5; padding: 12px; border-radius: 8px; font-size: .78rem; overflow: auto; margin: 12px 0 0; }
-  .note { font-size: .8rem; color: #6b7280; }
-</style>
+        /* Playground container background pattern */
+        .bg-grid-pattern {
+            background-size: 24px 24px;
+            background-image: radial-gradient(circle, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+        }
+
+        /* Playground Item smooth layout transition */
+        .playground-item {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .playground-container {
+            transition: padding 0.2s ease, gap 0.2s ease, min-height 0.2s ease;
+        }
+
+        /* Custom input range styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #1e293b;
+            border-radius: 3px;
+            border: 1px solid #334155;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+            transition: transform 0.15s ease, background-color 0.15s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #60a5fa;
+        }
+
+        /* Axis Visualizer Animations */
+        @keyframes pulseLine {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.85; }
+        }
+        .animate-pulse-line {
+            animation: pulseLine 2.5s infinite ease-in-out;
+        }
+
+        /* Custom Glassmorphic background */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
 </head>
-<body>
-<h1>CSS Box Model &amp; Display Lab: Side-Specific Controls</h1>
-<div class="layout">
-  <div class="panel controls" id="controls">
-    <fieldset><legend>Size &amp; Display</legend>
-      <div class="row"><label>Width <span class="val" id="v-width">120px</span></label>
-        <input type="range" id="width" min="40" max="400" value="120"></div>
-      <div class="row"><label>Corner radius <span class="val" id="v-radius">0px</span></label>
-        <input type="range" id="radius" min="0" max="80" value="0"></div>
-      <div class="row"><label for="display">display</label>
-        <select id="display">
-          <option value="block">block</option>
-          <option value="inline-block">inline-block</option>
-          <option value="inline">inline</option>
-        </select></div>
-      <p class="note">On <code>inline</code>, width and vertical margin/padding effects stop behaving like a block. Toggle it and watch.</p>
-    </fieldset>
-    <!-- Margin / Padding / Border fieldsets are generated by JS below -->
-  </div>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
 
-  <div class="panel stage-wrap">
-    <div id="stage">
-      <div class="box" id="box1">Box 1</div>
-      <div class="box" id="box2">Box 2</div>
+    <header class="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur sticky top-0 z-50 px-4 lg:px-8 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h3a1 1 0 011 1v6a1 1 0 01-1 1h-3a1 1 0 01-1-1v-6z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                            Flexbox & Grid Visualizer
+                        </h1>
+                        <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-full">Pro Studio</span>
+                    </div>
+                    <p class="text-xs text-slate-400">Interactive layout laboratory for CSS Flexbox, Grid, & Item alignment properties</p>
+                </div>
+            </div>
+
+            <!-- One-Click Layout Presets -->
+            <div class="flex items-center space-x-2 text-xs overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
+                <span class="text-slate-400 font-semibold mr-1 text-[11px] whitespace-nowrap">Presets:</span>
+                <button onclick="applyPreset('hero')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700/70 whitespace-nowrap text-xs flex items-center gap-1.5 shadow-sm">
+                    🎯 Centering Hero
+                </button>
+                <button onclick="applyPreset('grid3')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700/70 whitespace-nowrap text-xs flex items-center gap-1.5 shadow-sm">
+                    📐 3-Col Card Grid
+                </button>
+                <button onclick="applyPreset('holyGrail')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700/70 whitespace-nowrap text-xs flex items-center gap-1.5 shadow-sm">
+                    🏛️ Holy Grail
+                </button>
+                <button onclick="applyPreset('autoFit')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700/70 whitespace-nowrap text-xs flex items-center gap-1.5 shadow-sm">
+                    📱 Auto-Fit Gallery
+                </button>
+                <button onclick="applyPreset('navBar')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700/70 whitespace-nowrap text-xs flex items-center gap-1.5 shadow-sm">
+                    🧭 Navigation Bar
+                </button>
+                <button onclick="resetAll()" class="px-2.5 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-300 transition border border-red-800/40 whitespace-nowrap text-xs flex items-center gap-1">
+                    ↺ Reset
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto w-full p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+
+        <!-- LEFT COLUMN: Comprehensive Container & Item Controls (5 Columns) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+
+            <!-- CONTROL PANEL CARD -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-5">
+                
+                <!-- Display Mode Selector -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="display-select" class="text-xs font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            Layout Display Mode
+                        </label>
+                        <span id="display-mode-badge" class="px-2 py-0.5 rounded text-[11px] font-mono bg-blue-950 text-blue-300 border border-blue-800">display: flex</span>
+                    </div>
+                    <select id="display-select" onchange="updateState('display', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold text-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition shadow-inner">
+                        <option value="flex" selected>flex</option>
+                        <option value="grid">grid</option>
+                        <option value="block">block</option>
+                        <option value="inline-flex">inline-flex</option>
+                        <option value="inline-grid">inline-grid</option>
+                    </select>
+                </div>
+
+                <!-- FLEXBOX CONTROLS SECTION -->
+                <div id="flexbox-controls-panel" class="space-y-3.5 pt-3 border-t border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                            ⚡ Flexbox Properties
+                        </span>
+                        <span class="text-[10px] text-slate-500 font-mono">Container level</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="block text-slate-400 mb-1 font-medium">flex-direction</label>
+                            <select id="ctrl-flex-direction" onchange="updateState('flexDirection', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 font-medium text-slate-200 focus:ring-1 focus:ring-indigo-500">
+                                <option value="row" selected>row</option>
+                                <option value="row-reverse">row-reverse</option>
+                                <option value="column">column</option>
+                                <option value="column-reverse">column-reverse</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1 font-medium">flex-wrap</label>
+                            <select id="ctrl-flex-wrap" onchange="updateState('flexWrap', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 font-medium text-slate-200 focus:ring-1 focus:ring-indigo-500">
+                                <option value="nowrap" selected>nowrap</option>
+                                <option value="wrap">wrap</option>
+                                <option value="wrap-reverse">wrap-reverse</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5 text-xs">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <label class="text-slate-400 font-medium">justify-content <span class="text-[10px] text-indigo-400">(Main Axis)</span></label>
+                            </div>
+                            <select id="ctrl-justify-content" onchange="updateState('justifyContent', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 font-medium text-slate-200 focus:ring-1 focus:ring-indigo-500">
+                                <option value="flex-start" selected>flex-start</option>
+                                <option value="center">center</option>
+                                <option value="flex-end">flex-end</option>
+                                <option value="space-between">space-between</option>
+                                <option value="space-around">space-around</option>
+                                <option value="space-evenly">space-evenly</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <label class="text-slate-400 font-medium">align-items <span class="text-[10px] text-emerald-400">(Cross Axis)</span></label>
+                            </div>
+                            <select id="ctrl-align-items" onchange="updateState('alignItems', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 font-medium text-slate-200 focus:ring-1 focus:ring-indigo-500">
+                                <option value="stretch" selected>stretch</option>
+                                <option value="flex-start">flex-start</option>
+                                <option value="center">center</option>
+                                <option value="flex-end">flex-end</option>
+                                <option value="baseline">baseline</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <label class="text-slate-400 font-medium">align-content <span class="text-[10px] text-purple-400">(Multi-line)</span></label>
+                            </div>
+                            <select id="ctrl-align-content" onchange="updateState('alignContent', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 font-medium text-slate-200 focus:ring-1 focus:ring-indigo-500">
+                                <option value="normal" selected>normal / stretch</option>
+                                <option value="flex-start">flex-start</option>
+                                <option value="center">center</option>
+                                <option value="flex-end">flex-end</option>
+                                <option value="space-between">space-between</option>
+                                <option value="space-around">space-around</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GRID CONTROLS SECTION -->
+                <div id="grid-controls-panel" class="hidden space-y-3.5 pt-3 border-t border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                            🔷 Grid Properties
+                        </span>
+                        <span class="text-[10px] text-slate-500 font-mono">Container level</span>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <label class="block text-slate-400 mb-1 font-medium">grid-template-columns</label>
+                            <div class="flex gap-2">
+                                <select id="select-grid-cols-preset" onchange="setGridColsPreset(this.value)" class="w-1/2 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-200">
+                                    <option value="1fr 1fr">1fr 1fr</option>
+                                    <option value="1fr 1fr 1fr" selected>1fr 1fr 1fr (3 cols)</option>
+                                    <option value="repeat(auto-fit, minmax(120px, 1fr))">auto-fit minmax(120px)</option>
+                                    <option value="200px 1fr">200px 1fr (Sidebar)</option>
+                                    <option value="1fr 2fr 1fr">1fr 2fr 1fr</option>
+                                    <option value="custom">Custom string...</option>
+                                </select>
+                                <input type="text" id="ctrl-grid-cols" value="1fr 1fr 1fr" oninput="updateState('gridTemplateColumns', this.value)" class="w-1/2 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-purple-300 focus:ring-1 focus:ring-purple-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-400 mb-1 font-medium">grid-template-rows</label>
+                            <div class="flex gap-2">
+                                <select id="select-grid-rows-preset" onchange="setGridRowsPreset(this.value)" class="w-1/2 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-200">
+                                    <option value="auto" selected>auto</option>
+                                    <option value="100px 100px">100px 100px</option>
+                                    <option value="80px 1fr 80px">80px 1fr 80px (Holy Grail)</option>
+                                    <option value="repeat(3, 100px)">repeat(3, 100px)</option>
+                                    <option value="custom">Custom string...</option>
+                                </select>
+                                <input type="text" id="ctrl-grid-rows" value="auto" oninput="updateState('gridTemplateRows', this.value)" class="w-1/2 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-xs text-purple-300 focus:ring-1 focus:ring-purple-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">justify-items</label>
+                                <select id="ctrl-grid-justify-items" onchange="updateState('justifyItems', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-200">
+                                    <option value="stretch" selected>stretch</option>
+                                    <option value="start">start</option>
+                                    <option value="center">center</option>
+                                    <option value="end">end</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">align-items</label>
+                                <select id="ctrl-grid-align-items" onchange="updateState('gridAlignItems', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-200">
+                                    <option value="stretch" selected>stretch</option>
+                                    <option value="start">start</option>
+                                    <option value="center">center</option>
+                                    <option value="end">end</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">justify-content</label>
+                                <select id="ctrl-grid-justify-content" onchange="updateState('gridJustifyContent', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-200">
+                                    <option value="start" selected>start</option>
+                                    <option value="center">center</option>
+                                    <option value="end">end</option>
+                                    <option value="space-between">space-between</option>
+                                    <option value="space-around">space-around</option>
+                                    <option value="space-evenly">space-evenly</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 mb-1 font-medium">align-content</label>
+                                <select id="ctrl-grid-align-content" onchange="updateState('gridAlignContent', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-200">
+                                    <option value="start" selected>start</option>
+                                    <option value="center">center</option>
+                                    <option value="end">end</option>
+                                    <option value="space-between">space-between</option>
+                                    <option value="space-around">space-around</option>
+                                    <option value="space-evenly">space-evenly</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SHARED CONTAINER DIMENSION & GAP CONTROLS -->
+                <div class="space-y-3 pt-3 border-t border-slate-800">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block">
+                        📏 Spacing & Dimensions
+                    </span>
+
+                    <div class="space-y-2 text-xs">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <label class="text-slate-400 font-medium">gap</label>
+                                <span id="val-gap" class="font-mono text-blue-400 font-bold">16px</span>
+                            </div>
+                            <input type="range" id="slider-gap" min="0" max="50" value="16" oninput="updateState('gap', parseInt(this.value))" class="w-full">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <label class="text-slate-400 font-medium">padding</label>
+                                <span id="val-padding" class="font-mono text-blue-400 font-bold">20px</span>
+                            </div>
+                            <input type="range" id="slider-padding" min="0" max="40" value="20" oninput="updateState('padding', parseInt(this.value))" class="w-full">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <label class="text-slate-400 font-medium">container height</label>
+                                <span id="val-height" class="font-mono text-blue-400 font-bold">360px</span>
+                            </div>
+                            <input type="range" id="slider-height" min="200" max="600" value="360" oninput="updateState('containerHeight', parseInt(this.value))" class="w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ITEM MANAGER & INDIVIDUAL OVERRIDES -->
+                <div class="space-y-3 pt-3 border-t border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                            🧩 Item Controls (<span id="item-count-label">5</span>)
+                        </span>
+                        
+                        <!-- Add / Remove Buttons -->
+                        <div class="flex items-center space-x-1.5">
+                            <button onclick="changeItemCount(-1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 flex items-center justify-center font-bold text-sm transition">
+                                -
+                            </button>
+                            <button onclick="changeItemCount(1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 flex items-center justify-center font-bold text-sm transition">
+                                +
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                        <span class="text-slate-300 font-medium">Height Variance (Demo baseline/stretch)</span>
+                        <input type="checkbox" id="chk-height-variance" onchange="updateState('heightVariance', this.checked)" class="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Individual Item Override Panel -->
+                    <div id="item-override-panel" class="bg-slate-950/80 border border-blue-500/30 rounded-xl p-3 space-y-2 text-xs">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                            <span class="font-bold text-blue-400 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                Selected: <span id="override-item-title">Item 1</span>
+                            </span>
+                            <span class="text-[10px] text-slate-500">Click items on stage to switch</span>
+                        </div>
+
+                        <!-- Flex item overrides -->
+                        <div id="item-flex-overrides" class="grid grid-cols-2 gap-2 pt-1">
+                            <div>
+                                <label class="text-[11px] text-slate-400 block mb-0.5">flex-grow</label>
+                                <input type="number" id="item-flex-grow" min="0" max="10" value="0" onchange="updateItemOverride('flexGrow', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-slate-200">
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-400 block mb-0.5">flex-shrink</label>
+                                <input type="number" id="item-flex-shrink" min="0" max="10" value="1" onchange="updateItemOverride('flexShrink', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-slate-200">
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-400 block mb-0.5">flex-basis</label>
+                                <input type="text" id="item-flex-basis" value="auto" onchange="updateItemOverride('flexBasis', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-slate-200">
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-400 block mb-0.5">align-self</label>
+                                <select id="item-align-self" onchange="updateItemOverride('alignSelf', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200">
+                                    <option value="auto">auto</option>
+                                    <option value="flex-start">flex-start</option>
+                                    <option value="center">center</option>
+                                    <option value="flex-end">flex-end</option>
+                                    <option value="stretch">stretch</option>
+                                    <option value="baseline">baseline</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Grid item overrides -->
+                        <div id="item-grid-overrides" class="hidden grid grid-cols-2 gap-2 pt-1">
+                            <div>
+                                <label class="text-[11px] text-slate-400 block mb-0.5">grid-column</label>
+                                <input type="text" id="item-grid-column" value="auto" placeholder="e.g. span 2" onchange="updateItemOverride('gridColumn', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-slate-200">
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-400 block mb-0.5">grid-row</label>
+                                <input type="text" id="item-grid-row" value="auto" placeholder="e.g. 1 / 3" onchange="updateItemOverride('gridRow', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-slate-200">
+                            </div>
+                        </div>
+
+                        <div class="pt-1">
+                            <label class="text-[11px] text-slate-400 block mb-0.5">order</label>
+                            <input type="number" id="item-order" value="0" onchange="updateItemOverride('order', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-slate-200">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Playground Stage, Axis Visualizer & CSS Code Output (7 Columns) -->
+        <div class="lg:col-span-7 flex flex-col gap-5">
+
+            <!-- PLAYGROUND STAGE CARD -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col">
+                
+                <!-- Stage Header Toolbar -->
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">Playground Canvas Stage</h2>
+                    </div>
+
+                    <div class="flex items-center space-x-3 text-xs">
+                        <label class="flex items-center space-x-1.5 cursor-pointer text-slate-400 hover:text-slate-200 transition">
+                            <input type="checkbox" id="chk-axis-overlay" checked onchange="updateState('axisOverlay', this.checked)" class="rounded border-slate-700 bg-slate-950 text-blue-500">
+                            <span class="text-[11px]">Axis / Track Lines</span>
+                        </label>
+                        <span id="stage-dims-badge" class="font-mono text-[11px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-md">
+                            640 × 360 px
+                        </span>
+                    </div>
+                </div>
+
+                <!-- PLAYGROUND CONTAINER VIEWPORT -->
+                <div class="relative bg-slate-950 border border-slate-800 rounded-xl overflow-hidden bg-grid-pattern flex-grow min-h-[320px]">
+                    
+                    <!-- Axis Overlay Canvas Layer -->
+                    <div id="axis-overlay-layer" class="absolute inset-0 pointer-events-none z-10 p-4 transition-opacity duration-300">
+                        <!-- Dynamic SVG arrows or grid tracks injected via JS -->
+                        <svg id="axis-svg" class="w-full h-full text-blue-500/40" style="overflow: visible;"></svg>
+                    </div>
+
+                    <!-- THE MAIN CONTAINER -->
+                    <div id="playground-container" class="playground-container w-full h-full relative z-20 border border-dashed border-slate-700/80 rounded-lg">
+                        <!-- Playground items dynamically rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- DYNAMIC EDUCATIONAL EXPLANATION CARD -->
+            <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 shadow-xl text-xs">
+                <div class="flex items-center space-x-2 mb-2">
+                    <span class="text-base">💡</span>
+                    <h3 class="font-bold text-indigo-300 uppercase tracking-wider text-[11px]">
+                        Layout Rules & Behavioral Insights
+                    </h3>
+                </div>
+                <div id="edu-explanation-content" class="text-slate-300 leading-relaxed space-y-1">
+                    <!-- Dynamic tips injected via JS -->
+                </div>
+            </div>
+
+            <!-- GENERATED CSS CODE GENERATOR & COPY -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">Generated CSS Code</h3>
+                    </div>
+
+                    <button onclick="copyGeneratedCss()" id="btn-copy-css" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs font-semibold transition flex items-center space-x-1.5 shadow-md shadow-blue-600/30">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        <span id="copy-btn-text">Copy CSS</span>
+                    </button>
+                </div>
+
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs leading-relaxed overflow-x-auto relative shadow-inner">
+                    <pre id="css-output-code" class="text-blue-300">/* Generated CSS will render here */</pre>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Toast Confirmation Banner -->
+    <div id="toast-message" class="fixed bottom-5 right-5 bg-emerald-600 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-2xl border border-emerald-400 opacity-0 pointer-events-none transition-all duration-300 transform translate-y-3 z-50 flex items-center space-x-2">
+        <span>✓</span>
+        <span id="toast-text">CSS copied to clipboard!</span>
     </div>
-    <div class="legend-row">
-      <span class="l-m">Margin</span><span class="l-b">Border</span>
-      <span class="l-p">Padding</span><span class="l-c">Content</span>
-    </div>
-    <pre id="css-out"></pre>
-  </div>
-</div>
 
-<script>
-  const box1 = document.getElementById('box1');
-  const SIDES = ['top', 'right', 'bottom', 'left'];
-  const GROUPS = [
-    { key: 'margin',  label: 'Margin',  max: 80, start: 20 },
-    { key: 'padding', label: 'Padding', max: 80, start: 20 },
-    { key: 'border',  label: 'Border width', max: 30, start: 6 }
-  ];
-  const state = {};   // e.g. state['margin-top'] = 20
+    <script>
+        // Item Gradient Collections for Aesthetic Diversity
+        const ITEM_GRADIENTS = [
+            'from-blue-600 to-indigo-600',
+            'from-emerald-600 to-teal-600',
+            'from-amber-600 to-orange-600',
+            'from-purple-600 to-pink-600',
+            'from-rose-600 to-red-600',
+            'from-cyan-600 to-blue-600',
+            'from-fuchsia-600 to-purple-600',
+            'from-lime-600 to-emerald-600',
+            'from-violet-600 to-indigo-600',
+            'from-sky-600 to-cyan-600',
+            'from-teal-600 to-emerald-600',
+            'from-pink-600 to-rose-600'
+        ];
 
-  // Build the per-side sliders
-  const controls = document.getElementById('controls');
-  GROUPS.forEach(g => {
-    const fs = document.createElement('fieldset');
-    fs.innerHTML = `<legend>${g.label}</legend>`;
-    SIDES.forEach(side => {
-      const id = `${g.key}-${side}`;
-      state[id] = g.start;
-      const row = document.createElement('div');
-      row.className = 'row';
-      row.innerHTML = `<label for="${id}">${side} <span class="val" id="v-${id}">${g.start}px</span></label>
-                       <input type="range" id="${id}" min="0" max="${g.max}" value="${g.start}">`;
-      fs.appendChild(row);
-    });
-    const btn = document.createElement('button');
-    btn.type = 'button'; btn.className = 'link-btn'; btn.textContent = 'Sync all sides to top';
-    btn.addEventListener('click', () => {
-      SIDES.forEach(side => { document.getElementById(`${g.key}-${side}`).value = document.getElementById(`${g.key}-top`).value; });
-      update();
-    });
-    fs.appendChild(btn);
-    controls.appendChild(fs);
-  });
+        // Central State Structure
+        let state = {
+            display: 'flex',
+            // Flexbox
+            flexDirection: 'row',
+            flexWrap: 'nowrap',
+            justifyContent: 'flex-start',
+            alignItems: 'stretch',
+            alignContent: 'normal',
+            // Grid
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gridTemplateRows: 'auto',
+            justifyItems: 'stretch',
+            gridAlignItems: 'stretch',
+            gridJustifyContent: 'start',
+            gridAlignContent: 'start',
+            // Dimensions & Spacing
+            gap: 16,
+            padding: 20,
+            containerHeight: 360,
+            // Items
+            itemCount: 5,
+            heightVariance: false,
+            axisOverlay: true,
+            selectedItemId: 0,
+            itemOverrides: {} // e.g. { 0: { flexGrow: 1, ... } }
+        };
 
-  function update() {
-    // read all sliders
-    GROUPS.forEach(g => SIDES.forEach(side => {
-      const id = `${g.key}-${side}`;
-      const v = document.getElementById(id).value;
-      state[id] = v;
-      document.getElementById('v-' + id).textContent = v + 'px';
-    }));
-    const w = document.getElementById('width').value;
-    const r = document.getElementById('radius').value;
-    document.getElementById('v-width').textContent = w + 'px';
-    document.getElementById('v-radius').textContent = r + 'px';
+        // DOM Element Cache
+        const containerEl = document.getElementById('playground-container');
+        const displaySelect = document.getElementById('display-select');
+        const flexControlsPanel = document.getElementById('flexbox-controls-panel');
+        const gridControlsPanel = document.getElementById('grid-controls-panel');
+        const itemFlexOverrides = document.getElementById('item-flex-overrides');
+        const itemGridOverrides = document.getElementById('item-grid-overrides');
 
-    // margin + border go through CSS variables (the margin overlay needs them too)
-    box1.style.setProperty('--mt', state['margin-top'] + 'px');
-    box1.style.setProperty('--mr', state['margin-right'] + 'px');
-    box1.style.setProperty('--mb', state['margin-bottom'] + 'px');
-    box1.style.setProperty('--ml', state['margin-left'] + 'px');
-    box1.style.setProperty('--bt', state['border-top'] + 'px');
-    box1.style.setProperty('--br', state['border-right'] + 'px');
-    box1.style.setProperty('--bb', state['border-bottom'] + 'px');
-    box1.style.setProperty('--bl', state['border-left'] + 'px');
+        // Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeDefaultItemOverrides();
+            renderAll();
 
-    box1.style.padding = SIDES.map(s => state['padding-' + s] + 'px').join(' ');
-    box1.style.width = w + 'px';
-    box1.style.borderRadius = r + 'px';
-    box1.style.display = document.getElementById('display').value;
+            // Observe resize for stage dimension badge
+            const resizeObserver = new ResizeObserver(entries => {
+                for (let entry of entries) {
+                    const width = Math.round(entry.contentRect.width);
+                    const height = Math.round(entry.contentRect.height);
+                    document.getElementById('stage-dims-badge').textContent = `${width} × ${height} px`;
+                    updateAxisOverlay();
+                }
+            });
+            resizeObserver.observe(containerEl);
+        });
 
-    document.getElementById('css-out').textContent =
-`#box1 {
-  display: ${box1.style.display};
-  width: ${w}px;
-  margin: ${SIDES.map(s => state['margin-' + s] + 'px').join(' ')};
-  padding: ${SIDES.map(s => state['padding-' + s] + 'px').join(' ')};
-  border-width: ${SIDES.map(s => state['border-' + s] + 'px').join(' ')};
-  border-radius: ${r}px;
-}`;
-  }
+        function initializeDefaultItemOverrides() {
+            for (let i = 0; i < 12; i++) {
+                if (!state.itemOverrides[i]) {
+                    state.itemOverrides[i] = {
+                        flexGrow: 0,
+                        flexShrink: 1,
+                        flexBasis: 'auto',
+                        alignSelf: 'auto',
+                        gridColumn: 'auto',
+                        gridRow: 'auto',
+                        order: 0
+                    };
+                }
+            }
+        }
 
-  controls.addEventListener('input', update);
-  controls.addEventListener('change', update);
-  update();
-</script>
+        function updateState(prop, value) {
+            state[prop] = value;
+            renderAll();
+        }
+
+        function changeItemCount(delta) {
+            const newCount = Math.max(1, Math.min(12, state.itemCount + delta));
+            if (newCount !== state.itemCount) {
+                state.itemCount = newCount;
+                if (state.selectedItemId >= state.itemCount) {
+                    state.selectedItemId = state.itemCount - 1;
+                }
+                renderAll();
+            }
+        }
+
+        function selectItem(index) {
+            state.selectedItemId = index;
+            renderItemOverrideInputs();
+            renderItems();
+        }
+
+        function updateItemOverride(prop, val) {
+            const idx = state.selectedItemId;
+            if (!state.itemOverrides[idx]) {
+                state.itemOverrides[idx] = {};
+            }
+            state.itemOverrides[idx][prop] = val;
+            renderAll();
+        }
+
+        function renderAll() {
+            updateControlsVisibility();
+            updateControlInputsUI();
+            renderItems();
+            renderItemOverrideInputs();
+            updateAxisOverlay();
+            updateEducationalTips();
+            updateCssCodeOutput();
+        }
+
+        function updateControlsVisibility() {
+            const isFlex = state.display.includes('flex');
+            const isGrid = state.display.includes('grid');
+
+            if (isFlex) {
+                flexControlsPanel.classList.remove('hidden');
+                gridControlsPanel.classList.add('hidden');
+                itemFlexOverrides.classList.remove('hidden');
+                itemGridOverrides.classList.add('hidden');
+            } else if (isGrid) {
+                flexControlsPanel.classList.add('hidden');
+                gridControlsPanel.classList.remove('hidden');
+                itemFlexOverrides.classList.add('hidden');
+                itemGridOverrides.classList.remove('hidden');
+            } else {
+                // Block mode
+                flexControlsPanel.classList.add('hidden');
+                gridControlsPanel.classList.add('hidden');
+                itemFlexOverrides.classList.remove('hidden');
+                itemGridOverrides.classList.add('hidden');
+            }
+
+            document.getElementById('display-mode-badge').textContent = `display: ${state.display}`;
+        }
+
+        function updateControlInputsUI() {
+            // Values
+            document.getElementById('val-gap').textContent = `${state.gap}px`;
+            document.getElementById('val-padding').textContent = `${state.padding}px`;
+            document.getElementById('val-height').textContent = `${state.containerHeight}px`;
+            document.getElementById('item-count-label').textContent = state.itemCount;
+
+            // Container Element Styles
+            containerEl.style.display = state.display;
+            containerEl.style.gap = `${state.gap}px`;
+            containerEl.style.padding = `${state.padding}px`;
+            containerEl.style.minHeight = `${state.containerHeight}px`;
+
+            if (state.display.includes('flex')) {
+                containerEl.style.flexDirection = state.flexDirection;
+                containerEl.style.flexWrap = state.flexWrap;
+                containerEl.style.justifyContent = state.justifyContent;
+                containerEl.style.alignItems = state.alignItems;
+                containerEl.style.alignContent = state.alignContent;
+
+                // Clear grid styles
+                containerEl.style.gridTemplateColumns = '';
+                containerEl.style.gridTemplateRows = '';
+                containerEl.style.justifyItems = '';
+            } else if (state.display.includes('grid')) {
+                containerEl.style.gridTemplateColumns = state.gridTemplateColumns;
+                containerEl.style.gridTemplateRows = state.gridTemplateRows;
+                containerEl.style.justifyItems = state.justifyItems;
+                containerEl.style.alignItems = state.gridAlignItems;
+                containerEl.style.justifyContent = state.gridJustifyContent;
+                containerEl.style.alignContent = state.gridAlignContent;
+
+                // Clear flex styles
+                containerEl.style.flexDirection = '';
+                containerEl.style.flexWrap = '';
+            } else {
+                // Block
+                containerEl.style.flexDirection = '';
+                containerEl.style.gridTemplateColumns = '';
+            }
+        }
+
+        function renderItems() {
+            containerEl.innerHTML = '';
+
+            for (let i = 0; i < state.itemCount; i++) {
+                const overrides = state.itemOverrides[i] || {};
+                const isSelected = i === state.selectedItemId;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `playground-item relative group cursor-pointer rounded-xl p-3.5 flex flex-col justify-between shadow-lg font-mono border-2 transition-all select-none ${
+                    isSelected 
+                        ? 'border-blue-400 ring-4 ring-blue-500/30 scale-[1.02] z-30' 
+                        : 'border-white/10 hover:border-slate-500 hover:scale-[1.01]'
+                } bg-gradient-to-br ${ITEM_GRADIENTS[i % ITEM_GRADIENTS.length]}`;
+
+                // Height Variance
+                if (state.heightVariance) {
+                    const heights = [70, 110, 85, 130, 95, 120, 75, 105, 90, 115, 80, 125];
+                    itemDiv.style.minHeight = `${heights[i % heights.length]}px`;
+                } else {
+                    itemDiv.style.minHeight = '70px';
+                }
+
+                // Apply Overrides
+                if (state.display.includes('flex') || state.display === 'block') {
+                    if (overrides.flexGrow !== undefined) itemDiv.style.flexGrow = overrides.flexGrow;
+                    if (overrides.flexShrink !== undefined) itemDiv.style.flexShrink = overrides.flexShrink;
+                    if (overrides.flexBasis) itemDiv.style.flexBasis = overrides.flexBasis;
+                    if (overrides.alignSelf && overrides.alignSelf !== 'auto') itemDiv.style.alignSelf = overrides.alignSelf;
+                }
+
+                if (state.display.includes('grid')) {
+                    if (overrides.gridColumn && overrides.gridColumn !== 'auto') itemDiv.style.gridColumn = overrides.gridColumn;
+                    if (overrides.gridRow && overrides.gridRow !== 'auto') itemDiv.style.gridRow = overrides.gridRow;
+                }
+
+                if (overrides.order !== undefined) itemDiv.style.order = overrides.order;
+
+                // Item Header / Badge
+                itemDiv.innerHTML = `
+                    <div class="flex items-center justify-between text-xs font-bold mb-2">
+                        <span class="bg-black/40 px-2 py-0.5 rounded-md text-white border border-white/20">Item ${i + 1}</span>
+                        ${isSelected ? '<span class="text-[10px] bg-blue-500 text-white px-1.5 py-0.5 rounded uppercase tracking-wider font-sans font-extrabold">Active</span>' : ''}
+                    </div>
+                    <div class="text-[11px] text-white/80 space-y-0.5">
+                        ${state.display.includes('flex') ? `<div>grow: ${overrides.flexGrow || 0}</div>` : ''}
+                        ${state.display.includes('grid') && overrides.gridColumn !== 'auto' ? `<div class="truncate">col: ${overrides.gridColumn}</div>` : ''}
+                    </div>
+                `;
+
+                itemDiv.addEventListener('click', () => selectItem(i));
+                containerEl.appendChild(itemDiv);
+            }
+        }
+
+        function renderItemOverrideInputs() {
+            const idx = state.selectedItemId;
+            const overrides = state.itemOverrides[idx] || {};
+
+            document.getElementById('override-item-title').textContent = `Item ${idx + 1}`;
+            document.getElementById('item-flex-grow').value = overrides.flexGrow ?? 0;
+            document.getElementById('item-flex-shrink').value = overrides.flexShrink ?? 1;
+            document.getElementById('item-flex-basis').value = overrides.flexBasis || 'auto';
+            document.getElementById('item-align-self').value = overrides.alignSelf || 'auto';
+            document.getElementById('item-grid-column').value = overrides.gridColumn || 'auto';
+            document.getElementById('item-grid-row').value = overrides.gridRow || 'auto';
+            document.getElementById('item-order').value = overrides.order ?? 0;
+        }
+
+        function setGridColsPreset(val) {
+            if (val !== 'custom') {
+                document.getElementById('ctrl-grid-cols').value = val;
+                updateState('gridTemplateColumns', val);
+            }
+        }
+
+        function setGridRowsPreset(val) {
+            if (val !== 'custom') {
+                document.getElementById('ctrl-grid-rows').value = val;
+                updateState('gridTemplateRows', val);
+            }
+        }
+
+        function updateAxisOverlay() {
+            const overlayLayer = document.getElementById('axis-overlay-layer');
+            const svg = document.getElementById('axis-svg');
+
+            if (!state.axisOverlay) {
+                overlayLayer.style.opacity = '0';
+                return;
+            }
+            overlayLayer.style.opacity = '1';
+            svg.innerHTML = '';
+
+            const isFlex = state.display.includes('flex');
+            const isGrid = state.display.includes('grid');
+
+            if (isFlex) {
+                const isColumn = state.flexDirection.includes('column');
+                const isReverse = state.flexDirection.includes('reverse');
+
+                // Main Axis Arrow Definition
+                const mainColor = '#60a5fa'; // Blue
+                const crossColor = '#34d399'; // Emerald
+
+                if (!isColumn) {
+                    // Horizontal Main Axis
+                    const startX = isReverse ? '92%' : '8%';
+                    const endX = isReverse ? '8%' : '92%';
+                    
+                    svg.innerHTML = `
+                        <defs>
+                            <marker id="arrow-main" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="${mainColor}" />
+                            </marker>
+                            <marker id="arrow-cross" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="${crossColor}" />
+                            </marker>
+                        </defs>
+                        <!-- Main Axis Line -->
+                        <line x1="${startX}" y1="20" x2="${endX}" y2="20" stroke="${mainColor}" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow-main)" class="animate-pulse-line" />
+                        <text x="50%" y="15" text-anchor="middle" fill="${mainColor}" font-size="10" font-family="JetBrains Mono" font-weight="bold">MAIN AXIS (justify-content)</text>
+
+                        <!-- Cross Axis Line -->
+                        <line x1="20" y1="25%" x2="20" y2="85%" stroke="${crossColor}" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow-cross)" class="animate-pulse-line" />
+                        <text x="25" y="55%" text-anchor="start" fill="${crossColor}" font-size="10" font-family="JetBrains Mono" font-weight="bold" transform="rotate(90, 25, 180)">CROSS AXIS (align-items)</text>
+                    `;
+                } else {
+                    // Vertical Main Axis
+                    const startY = isReverse ? '88%' : '12%';
+                    const endY = isReverse ? '12%' : '88%';
+
+                    svg.innerHTML = `
+                        <defs>
+                            <marker id="arrow-main" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="${mainColor}" />
+                            </marker>
+                            <marker id="arrow-cross" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="${crossColor}" />
+                            </marker>
+                        </defs>
+                        <!-- Main Axis Vertical Line -->
+                        <line x1="25" y1="${startY}" x2="25" y2="${endY}" stroke="${mainColor}" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow-main)" class="animate-pulse-line" />
+                        <text x="30" y="50%" text-anchor="middle" fill="${mainColor}" font-size="10" font-family="JetBrains Mono" font-weight="bold" transform="rotate(90, 30, 180)">MAIN AXIS (justify-content)</text>
+
+                        <!-- Cross Axis Horizontal Line -->
+                        <line x1="10%" y1="20" x2="90%" y2="20" stroke="${crossColor}" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrow-cross)" class="animate-pulse-line" />
+                        <text x="50%" y="15" text-anchor="middle" fill="${crossColor}" font-size="10" font-family="JetBrains Mono" font-weight="bold">CROSS AXIS (align-items)</text>
+                    `;
+                }
+            } else if (isGrid) {
+                // Grid overlay lines guide
+                svg.innerHTML = `
+                    <rect x="0" y="0" width="100%" height="100%" fill="none" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.4" />
+                    <text x="8" y="14" fill="#c084fc" font-size="10" font-family="JetBrains Mono" font-weight="bold">GRID CONTAINER TRACKS LAYER</text>
+                `;
+            }
+        }
+
+        function updateEducationalTips() {
+            const container = document.getElementById('edu-explanation-content');
+            let html = '';
+
+            if (state.display.includes('flex')) {
+                const isColumn = state.flexDirection.includes('column');
+                html = `
+                    <p>
+                        Current direction is <strong class="text-blue-400 font-mono">${state.flexDirection}</strong>. 
+                        Main Axis runs <strong>${isColumn ? 'Vertically' : 'Horizontally'}</strong>, controlled by 
+                        <code class="bg-slate-800 px-1 py-0.5 rounded text-blue-300">justify-content: ${state.justifyContent}</code>.
+                    </p>
+                    <p class="text-slate-400">
+                        Cross Axis runs <strong>${isColumn ? 'Horizontally' : 'Vertically'}</strong>, controlled by 
+                        <code class="bg-slate-800 px-1 py-0.5 rounded text-emerald-300">align-items: ${state.alignItems}</code>.
+                    </p>
+                `;
+            } else if (state.display.includes('grid')) {
+                html = `
+                    <p>
+                        Grid Layout Active: Columns defined as <strong class="text-purple-400 font-mono">${state.gridTemplateColumns}</strong> 
+                        and Rows as <strong class="text-purple-400 font-mono">${state.gridTemplateRows}</strong>.
+                    </p>
+                    <p class="text-slate-400">
+                        Items align inside grid cells via <code class="bg-slate-800 px-1 py-0.5 rounded text-purple-300">justify-items: ${state.justifyItems}</code> (inline) 
+                        and <code class="bg-slate-800 px-1 py-0.5 rounded text-purple-300">align-items: ${state.gridAlignItems}</code> (block).
+                    </p>
+                `;
+            } else {
+                html = `<p class="text-amber-300">Display Block: Standard block-level flow. Flexbox and Grid alignment rules do not apply.</p>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function updateCssCodeOutput() {
+            const isFlex = state.display.includes('flex');
+            const isGrid = state.display.includes('grid');
+
+            let css = `.container {\n  display: ${state.display};\n`;
+
+            if (isFlex) {
+                if (state.flexDirection !== 'row') css += `  flex-direction: ${state.flexDirection};\n`;
+                if (state.flexWrap !== 'nowrap') css += `  flex-wrap: ${state.flexWrap};\n`;
+                css += `  justify-content: ${state.justifyContent};\n`;
+                css += `  align-items: ${state.alignItems};\n`;
+                if (state.alignContent !== 'normal') css += `  align-content: ${state.alignContent};\n`;
+            } else if (isGrid) {
+                css += `  grid-template-columns: ${state.gridTemplateColumns};\n`;
+                css += `  grid-template-rows: ${state.gridTemplateRows};\n`;
+                if (state.justifyItems !== 'stretch') css += `  justify-items: ${state.justifyItems};\n`;
+                if (state.gridAlignItems !== 'stretch') css += `  align-items: ${state.gridAlignItems};\n`;
+                if (state.gridJustifyContent !== 'start') css += `  justify-content: ${state.gridJustifyContent};\n`;
+                if (state.gridAlignContent !== 'start') css += `  align-content: ${state.gridAlignContent};\n`;
+            }
+
+            css += `  gap: ${state.gap}px;\n`;
+            css += `  padding: ${state.padding}px;\n`;
+            css += `}\n`;
+
+            // Active Item Overrides CSS
+            const overrides = state.itemOverrides[state.selectedItemId] || {};
+            let itemCss = `\n/* Item ${state.selectedItemId + 1} Overrides */\n.item-${state.selectedItemId + 1} {\n`;
+            let hasItemProps = false;
+
+            if (isFlex) {
+                if (overrides.flexGrow) { itemCss += `  flex-grow: ${overrides.flexGrow};\n`; hasItemProps = true; }
+                if (overrides.flexShrink !== undefined && overrides.flexShrink !== 1) { itemCss += `  flex-shrink: ${overrides.flexShrink};\n`; hasItemProps = true; }
+                if (overrides.flexBasis && overrides.flexBasis !== 'auto') { itemCss += `  flex-basis: ${overrides.flexBasis};\n`; hasItemProps = true; }
+                if (overrides.alignSelf && overrides.alignSelf !== 'auto') { itemCss += `  align-self: ${overrides.alignSelf};\n`; hasItemProps = true; }
+            }
+
+            if (isGrid) {
+                if (overrides.gridColumn && overrides.gridColumn !== 'auto') { itemCss += `  grid-column: ${overrides.gridColumn};\n`; hasItemProps = true; }
+                if (overrides.gridRow && overrides.gridRow !== 'auto') { itemCss += `  grid-row: ${overrides.gridRow};\n`; hasItemProps = true; }
+            }
+
+            if (overrides.order) { itemCss += `  order: ${overrides.order};\n`; hasItemProps = true; }
+            itemCss += `}`;
+
+            if (hasItemProps) {
+                css += itemCss;
+            }
+
+            document.getElementById('css-output-code').textContent = css;
+        }
+
+        // Apply One-Click Layout Presets
+        function applyPreset(preset) {
+            if (preset === 'hero') {
+                state.display = 'flex';
+                state.flexDirection = 'row';
+                state.justifyContent = 'center';
+                state.alignItems = 'center';
+                state.itemCount = 1;
+                state.containerHeight = 320;
+            } else if (preset === 'grid3') {
+                state.display = 'grid';
+                state.gridTemplateColumns = '1fr 1fr 1fr';
+                state.gridTemplateRows = 'auto';
+                state.gap = 20;
+                state.itemCount = 6;
+                state.containerHeight = 380;
+            } else if (preset === 'holyGrail') {
+                state.display = 'grid';
+                state.gridTemplateColumns = '160px 1fr 160px';
+                state.gridTemplateRows = '60px 1fr 60px';
+                state.gap = 12;
+                state.itemCount = 5;
+                state.containerHeight = 400;
+
+                // Configure item span overrides for Holy Grail
+                state.itemOverrides[0] = { ...state.itemOverrides[0], gridColumn: '1 / -1', gridRow: 'auto' }; // Header
+                state.itemOverrides[1] = { ...state.itemOverrides[1], gridColumn: 'auto', gridRow: 'auto' };
+                state.itemOverrides[2] = { ...state.itemOverrides[2], gridColumn: 'auto', gridRow: 'auto' };
+                state.itemOverrides[3] = { ...state.itemOverrides[3], gridColumn: 'auto', gridRow: 'auto' };
+                state.itemOverrides[4] = { ...state.itemOverrides[4], gridColumn: '1 / -1', gridRow: 'auto' }; // Footer
+            } else if (preset === 'autoFit') {
+                state.display = 'grid';
+                state.gridTemplateColumns = 'repeat(auto-fit, minmax(130px, 1fr))';
+                state.gap = 16;
+                state.itemCount = 8;
+                state.containerHeight = 360;
+            } else if (preset === 'navBar') {
+                state.display = 'flex';
+                state.flexDirection = 'row';
+                state.justifyContent = 'space-between';
+                state.alignItems = 'center';
+                state.itemCount = 4;
+                state.containerHeight = 220;
+            }
+
+            // Sync Form Dropdowns
+            displaySelect.value = state.display;
+            document.getElementById('ctrl-flex-direction').value = state.flexDirection;
+            document.getElementById('ctrl-justify-content').value = state.justifyContent;
+            document.getElementById('ctrl-align-items').value = state.alignItems;
+            document.getElementById('ctrl-grid-cols').value = state.gridTemplateColumns;
+            document.getElementById('slider-gap').value = state.gap;
+            document.getElementById('slider-height').value = state.containerHeight;
+
+            renderAll();
+        }
+
+        function resetAll() {
+            state = {
+                display: 'flex',
+                flexDirection: 'row',
+                flexWrap: 'nowrap',
+                justifyContent: 'flex-start',
+                alignItems: 'stretch',
+                alignContent: 'normal',
+                gridTemplateColumns: '1fr 1fr 1fr',
+                gridTemplateRows: 'auto',
+                justifyItems: 'stretch',
+                gridAlignItems: 'stretch',
+                gridJustifyContent: 'start',
+                gridAlignContent: 'start',
+                gap: 16,
+                padding: 20,
+                containerHeight: 360,
+                itemCount: 5,
+                heightVariance: false,
+                axisOverlay: true,
+                selectedItemId: 0,
+                itemOverrides: {}
+            };
+            initializeDefaultItemOverrides();
+
+            displaySelect.value = 'flex';
+            document.getElementById('ctrl-flex-direction').value = 'row';
+            document.getElementById('ctrl-justify-content').value = 'flex-start';
+            document.getElementById('ctrl-align-items').value = 'stretch';
+            document.getElementById('slider-gap').value = 16;
+            document.getElementById('slider-padding').value = 20;
+            document.getElementById('slider-height').value = 360;
+            document.getElementById('chk-height-variance').checked = false;
+
+            renderAll();
+        }
+
+        // Copy generated CSS to clipboard
+        function copyGeneratedCss() {
+            const codeText = document.getElementById('css-output-code').textContent;
+
+            const textarea = document.createElement('textarea');
+            textarea.value = codeText;
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            try {
+                document.execCommand('copy');
+                showToast('CSS copied to clipboard!');
+            } catch (err) {
+                showToast('Failed to copy code.');
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast-message');
+            document.getElementById('toast-text').textContent = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
+            }, 2500);
+        }
+    </script>
 </body>
 </html>
