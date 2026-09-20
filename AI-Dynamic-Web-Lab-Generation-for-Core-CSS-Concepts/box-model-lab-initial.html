@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSS Box Model &amp; Display Lab (Initial)</title>
+<style>
+  * { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { margin: 0; background: #f4f5f7; color: #222; }
+  h1 { font-size: 1.4rem; margin: 0; padding: 16px 24px; background: #1f2937; color: #fff; }
+  .layout { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; }
+  .panel { background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+  .controls { flex: 0 0 300px; }
+  .stage-wrap { flex: 1 1 400px; min-width: 300px; }
+  .row { margin-bottom: 14px; }
+  .row label { display: flex; justify-content: space-between; font-size: .9rem; margin-bottom: 4px; }
+  .row .val { font-weight: 700; color: #2563eb; }
+  input[type=range] { width: 100%; }
+  select { width: 100%; padding: 6px; }
+
+  /* Stage: isolation makes the margin overlay (z-index:-1) sit above the stage bg but below the boxes */
+  #stage { position: relative; isolation: isolate; background: #fff; border: 2px dashed #9ca3af;
+           padding: 12px; min-height: 260px; line-height: 1.2; overflow: auto; }
+
+  .box { position: relative; text-align: center; font-weight: 700; }
+
+  /* BOX 1: content = green, padding = yellow, border = solid dark, margin = orange (via ::before) */
+  #box1 {
+    --m: 20px; --bw: 6px;
+    box-sizing: content-box;
+    width: 120px; height: 50px; line-height: 50px; padding: 20px; margin: 20px; border: 6px solid #1e3a8a;
+    background:
+      linear-gradient(#a7f3d0, #a7f3d0) content-box,   /* content area */
+      linear-gradient(#fde68a, #fde68a) padding-box;   /* padding area */
+    display: block;
+  }
+  #box1::before {   /* margin area */
+    content: ""; position: absolute; z-index: -1; background: #fdba74;
+    inset: calc(-1 * (var(--m) + var(--bw)));
+  }
+
+  #box2 { background: #c7d2fe; border: 2px solid #4338ca; padding: 10px; margin: 0; display: block; }
+
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: .8rem; margin-top: 12px; }
+  .legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; margin-right: 5px; vertical-align: -1px; border: 1px solid #555; }
+  .l-m::before { background: #fdba74; } .l-b::before { background: #1e3a8a; }
+  .l-p::before { background: #fde68a; } .l-c::before { background: #a7f3d0; }
+  .note { font-size: .8rem; color: #6b7280; margin-top: 8px; }
+</style>
+</head>
+<body>
+<h1>CSS Box Model &amp; Display Interactive Lab</h1>
+<div class="layout">
+  <div class="panel controls">
+    <h3 style="margin-top:0">Box 1 Controls</h3>
+    <div class="row"><label>Padding <span class="val" id="v-padding">20px</span></label>
+      <input type="range" id="padding" min="0" max="80" value="20"></div>
+    <div class="row"><label>Margin <span class="val" id="v-margin">20px</span></label>
+      <input type="range" id="margin" min="0" max="80" value="20"></div>
+    <div class="row"><label>Border width <span class="val" id="v-border">6px</span></label>
+      <input type="range" id="border" min="0" max="30" value="6"></div>
+    <div class="row"><label>Width <span class="val" id="v-width">120px</span></label>
+      <input type="range" id="width" min="40" max="400" value="120"></div>
+    <div class="row"><label for="display">display</label>
+      <select id="display">
+        <option value="block">block</option>
+        <option value="inline-block">inline-block</option>
+        <option value="inline">inline</option>
+      </select></div>
+    <p class="note">Heads up: <code>width</code> does nothing on <code>inline</code> elements, and vertical margins are ignored on them too. That's the whole point of this lab.</p>
+  </div>
+
+  <div class="panel stage-wrap">
+    <div id="stage">
+      <div class="box" id="box1">Box 1</div>
+      <div class="box" id="box2">Box 2</div>
+    </div>
+    <div class="legend">
+      <span class="l-m">Margin</span><span class="l-b">Border</span>
+      <span class="l-p">Padding</span><span class="l-c">Content</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const box1 = document.getElementById('box1');
+  const ids = ['padding', 'margin', 'border', 'width'];
+
+  function update() {
+    const p = padding.value, m = margin.value, b = border.value, w = width.value;
+    box1.style.padding = p + 'px';
+    box1.style.margin = m + 'px';
+    box1.style.borderWidth = b + 'px';
+    box1.style.width = w + 'px';
+    box1.style.display = display.value;
+    box1.style.setProperty('--m', m + 'px');
+    box1.style.setProperty('--bw', b + 'px');
+    document.getElementById('v-padding').textContent = p + 'px';
+    document.getElementById('v-margin').textContent = m + 'px';
+    document.getElementById('v-border').textContent = b + 'px';
+    document.getElementById('v-width').textContent = w + 'px';
+  }
+
+  ids.forEach(id => document.getElementById(id).addEventListener('input', update));
+  document.getElementById('display').addEventListener('change', update);
+  update();
+</script>
+</body>
+</html>

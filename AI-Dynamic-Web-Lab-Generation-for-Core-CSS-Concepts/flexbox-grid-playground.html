@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSS Flexbox &amp; Grid Playground</title>
+<style>
+  * { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; box-sizing: border-box; }
+  body { margin: 0; background: #f4f5f7; color: #222; }
+  h1 { font-size: 1.4rem; margin: 0; padding: 16px 24px; background: #1f2937; color: #fff; }
+  .layout { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; align-items: flex-start; }
+  .panel { background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+  .controls { flex: 0 0 300px; }
+  .preview { flex: 1 1 420px; min-width: 300px; }
+  label { display: block; font-size: .85rem; font-weight: 600; margin: 12px 0 4px; }
+  label:first-child { margin-top: 0; }
+  select { width: 100%; padding: 7px; border-radius: 6px; border: 1px solid #cbd5e1; }
+  select:disabled { background: #f1f5f9; color: #94a3b8; }
+  .hint { font-size: .75rem; color: #6b7280; margin-top: 3px; }
+
+  #container {
+    height: 360px; padding: 10px; gap: 10px;
+    background: #e0e7ff; border: 2px dashed #6366f1; border-radius: 8px;
+    overflow: auto;
+  }
+  .item {
+    background: #6366f1; color: #fff; font-weight: 700; border-radius: 6px;
+    padding: 14px 18px; text-align: center; min-width: 60px;
+  }
+  .item:nth-child(2) { background: #0ea5e9; padding-block: 28px; }
+  .item:nth-child(3) { background: #10b981; }
+  .item:nth-child(4) { background: #f59e0b; padding-block: 40px; }
+  .item:nth-child(5) { background: #ef4444; }
+
+  pre { background: #111827; color: #d1fae5; padding: 12px; border-radius: 8px; font-size: .8rem; overflow: auto; margin: 14px 0 0; }
+</style>
+</head>
+<body>
+<h1>CSS Flexbox &amp; Grid Playground</h1>
+<div class="layout">
+  <div class="panel controls">
+    <label for="display">display</label>
+    <select id="display">
+      <option value="block">block</option>
+      <option value="flex" selected>flex</option>
+      <option value="grid">grid</option>
+    </select>
+
+    <label for="flex-direction">flex-direction</label>
+    <select id="flex-direction">
+      <option value="row" selected>row</option>
+      <option value="column">column</option>
+    </select>
+    <div class="hint">Only applies when display is flex.</div>
+
+    <label for="justify-content">justify-content</label>
+    <select id="justify-content">
+      <option value="flex-start" selected>flex-start</option>
+      <option value="center">center</option>
+      <option value="flex-end">flex-end</option>
+      <option value="space-between">space-between</option>
+      <option value="space-around">space-around</option>
+      <option value="space-evenly">space-evenly</option>
+    </select>
+    <div class="hint">Works on flex and grid (main axis / inline axis).</div>
+
+    <label for="align-items">align-items</label>
+    <select id="align-items">
+      <option value="stretch">stretch</option>
+      <option value="flex-start" selected>flex-start</option>
+      <option value="center">center</option>
+      <option value="flex-end">flex-end</option>
+      <option value="baseline">baseline</option>
+    </select>
+    <div class="hint">Works on flex and grid (cross axis / block axis).</div>
+
+    <label for="grid-template-columns">grid-template-columns</label>
+    <select id="grid-template-columns">
+      <option value="1fr 1fr">1fr 1fr</option>
+      <option value="1fr 1fr 1fr" selected>1fr 1fr 1fr</option>
+      <option value="repeat(4, 1fr)">repeat(4, 1fr)</option>
+      <option value="1fr 2fr">1fr 2fr</option>
+      <option value="100px 1fr 100px">100px 1fr 100px</option>
+    </select>
+    <div class="hint">Only applies when display is grid.</div>
+  </div>
+
+  <div class="panel preview">
+    <div id="container">
+      <div class="item">1</div>
+      <div class="item">2</div>
+      <div class="item">3</div>
+      <div class="item">4</div>
+      <div class="item">5</div>
+    </div>
+    <pre id="css-out"></pre>
+  </div>
+</div>
+
+<script>
+  const container = document.getElementById('container');
+  const props = ['display', 'flex-direction', 'justify-content', 'align-items', 'grid-template-columns'];
+  const el = Object.fromEntries(props.map(p => [p, document.getElementById(p)]));
+
+  function update() {
+    const d = el['display'].value;
+    // Apply every property; the ones that don't fit the current display mode are simply ignored by the browser
+    props.forEach(p => container.style.setProperty(p, el[p].value));
+
+    // Grey out controls that do nothing in the current mode (nice for learning)
+    el['flex-direction'].disabled = d !== 'flex';
+    el['grid-template-columns'].disabled = d !== 'grid';
+    el['justify-content'].disabled = d === 'block';
+    el['align-items'].disabled = d === 'block';
+
+    let css = `#container {\n  display: ${d};\n`;
+    if (d === 'flex') css += `  flex-direction: ${el['flex-direction'].value};\n`;
+    if (d === 'grid') css += `  grid-template-columns: ${el['grid-template-columns'].value};\n`;
+    if (d !== 'block') css += `  justify-content: ${el['justify-content'].value};\n  align-items: ${el['align-items'].value};\n`;
+    css += '}';
+    document.getElementById('css-out').textContent = css;
+  }
+
+  props.forEach(p => el[p].addEventListener('change', update));
+  update();
+</script>
+</body>
+</html>
